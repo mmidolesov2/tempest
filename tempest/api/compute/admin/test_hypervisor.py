@@ -76,6 +76,7 @@ class HypervisorAdminTestJSON(HypervisorAdminTestBase):
         # from the list of hypervisors to test.
         ironic_only = True
         hypers_without_ironic = []
+        skip_vmware_driver = False
         for hyper in hypers:
             details = (self.client.show_hypervisor(hyper['id'])
                        ['hypervisor'])
@@ -83,10 +84,16 @@ class HypervisorAdminTestJSON(HypervisorAdminTestBase):
                     details['state'] == 'up'):
                 hypers_without_ironic.append(hyper)
                 ironic_only = False
+            if details['hypervisor_type'] == 'VMware vCenter Server':
+                skip_vmware_driver = True
 
         if ironic_only:
             raise self.skipException(
                 "Ironic does not support hypervisor uptime")
+        
+        if skip_vmware_driver:
+            raise self.skipException(
+                "VMware vCenter Server does not support hypervisor uptime")
 
         has_valid_uptime = False
         for hyper in hypers_without_ironic:
